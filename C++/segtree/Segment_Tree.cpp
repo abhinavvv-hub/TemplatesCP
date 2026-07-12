@@ -1,5 +1,7 @@
-#include <bits/stdc++.h>
-using namespace std;
+/*
+This is Originally a Basic Min Segment Tree But Based on Usage it can be Changed to max SegTree or, any feasible Binary Operator.
+You just have to make changes in last line of build, update_ and query_ function by changing the operator
+*/
 
 template <typename T>
 class SegmentTree {
