@@ -4,7 +4,7 @@ A curated collection of competitive programming templates that I use during cont
 
 ## ✨ Features
 
-* 🚀 Contest-ready C++ templates
+* 🚀 Contest-ready templates
 * ⚡ Optimized implementations with competitive programming constraints in mind
 * 🧩 Reusable snippets for common algorithms and data structures
 * 📖 Well-organized code for quick reference during practice
@@ -58,7 +58,7 @@ The goal of this repository is to:
 
 ## 💻 Language
 
-* C++20 / 23
+* C++23, Java
 
 ## ⭐ Contributions
 
