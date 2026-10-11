@@ -1,76 +1,65 @@
 class NTT {
     static const int MOD = 998244353;
-    static const int G = 3;
+    static const int ROOT = 62;
     static int power(int base, int exp) {
         int res = 1;
         base %= MOD;
         while (exp > 0) {
-            if (exp % 2 == 1) res = (res * base) % MOD;
+            if (exp & 1) res = (res * base) % MOD;
             base = (base * base) % MOD;
-            exp /= 2;
+            exp >>= 1;
         }
         return res;
     }
-    static long long modInverse(long long n) {
+    static int modInverse(int n) {
         return power(n, MOD - 2);
     }
-    static void bitReversalPermutation(vector<long long>& a) {
+    static void ntt_(vector<int>& a) {
         int n = a.size();
-        for (int i = 1, j = 0; i < n; ++i) {
-            int bit = n >> 1;
-            for (; j & bit; bit >>= 1) {
-                j ^= bit;
+        int L = 31 - __builtin_clz(n);
+        static vector<int> rt(2, 1);
+        for (static int k = 2, s = 2; k < n; k <<= 1, ++s) {
+            rt.resize(n);
+            int z[] = {1, power(ROOT, MOD >> s)};
+            for (int i = k; i < 2 * k; ++i) {
+                rt[i] = (rt[i / 2] * z[i & 1]) % MOD;
             }
-            j ^= bit;
-            if (i < j) {
-                swap(a[i], a[j]);
+        }
+        vector<int> rev(n);
+        for (int i = 0; i < n; ++i) {
+            rev[i] = (rev[i / 2] | ((i & 1) << L)) / 2;
+        }
+        for (int i = 0; i < n; ++i) {
+            if (i < rev[i]) swap(a[i], a[rev[i]]);
+        }
+        for (int k = 1; k < n; k <<= 1) {
+            for (int i = 0; i < n; i += 2 * k) {
+                for (int j = 0; j < k; ++j) {
+                    int z = (rt[j + k] * a[i + j + k]) % MOD;
+                    int& ai = a[i + j];
+                    a[i + j + k] = ai - z + (z > ai ? MOD : 0);
+                    ai += (ai + z >= MOD ? z - MOD : z);
+                }
             }
         }
     }
 public:
-    static void ntt(vector<int>& a, bool invert) {
-        int n = static_cast<int>(a.size());
-        bitReversalPermutation(a);
-        for (int len = 2; len <= n; len <<= 1) {
-            int wlen = power(G, (MOD - 1) / len);
-            if (invert) {
-                wlen = modInverse(wlen);
-            }
-            for (int i = 0; i < n; i += len) {
-                int w = 1;
-                for (int j = 0; j < len / 2; ++j) {
-                    long long u = a[i + j];
-                    long long v = (a[i + j + len / 2] * w) % MOD;
-                    a[i + j] = (u + v >= MOD ? u + v - MOD : u + v);
-                    a[i + j + len / 2] = (u - v < 0 ? u - v + MOD : u - v);
-                    w = (w * wlen) % MOD;
-                }
-            }
-        }
-        if (invert) {
-            long long n_inv = modInverse(n);
-            for (long long& x : a) {
-                x = (x * n_inv) % MOD;
-            }
-        }
-    }
-    static vector<int> multiply(const vector<long long>& a, const vector<long long>& b) {
-        vector<int> fa(a.begin(), a.end()), fb(b.begin(), b.end());
-        int n = 1;
-        while (n < (int)(a.size() + b.size())) {
-            n <<= 1;
-        }
+    static vector<int> multiply(const vector<int>& a, const vector<int>& b) {
+        if (a.empty() || b.empty()) return {};
+        int targetSize = a.size() + b.size() - 1;
+        int bits = 32 - __builtin_clz(targetSize);
+        int n = 1 << bits;
+        int invN = modInverse(n);
+        vector<int> fa(a), fb(b), out(n);
         fa.resize(n, 0);
         fb.resize(n, 0);
-        ntt(fa, false);
-        ntt(fb, false);
+        ntt_(fa);
+        ntt_(fb);
         for (int i = 0; i < n; ++i) {
-            fa[i] = (fa[i] * fb[i]) % MOD;
+            out[-i & (n - 1)] = (fa[i] * fb[i]) % MOD * invN % MOD;
         }
-        ntt(fa, true);
-        while (fa.size() > 1 && fa.back() == 0) {
-            fa.pop_back();
-        }
-        return fa;
+        ntt_(out);
+        out.resize(targetSize);
+        return out;
     }
 };
