@@ -50,4 +50,17 @@ public:
         int lca = getLCA(u, v);
         return depth[u] + depth[v] - 2 * depth[lca];
     }
+    int getKthNodeOnPath(int u, int v, int k) {
+        int lca = getLCA(u, v);
+        int left = depth[u] - depth[lca] + 1;
+        int tot = depth[u] + depth[v] - 2 * depth[lca] + 1;
+        if (k < 1 || k > tot) return -1; 
+        if (k <= left) {
+            return getKthAncestor(u, k - 1); 
+        }
+        else {
+            int fromV = tot - k;
+            return getKthAncestor(v, fromV);
+        }
+    }
 };
