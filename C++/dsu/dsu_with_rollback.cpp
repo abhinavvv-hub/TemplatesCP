@@ -67,3 +67,61 @@ public:
 		return components;
 	}
 };
+
+
+template <typename T>
+class SegmentTreeTime {
+	vector<vector<pair<T, T>>> Segment;
+	int sz;
+
+	int leftNode(int n) { return 2 * n + 1; }
+	int rightNode(int n) { return 2 * n + 2; }
+	int mid(int l, int r) { return l + (r - l) / 2; }
+
+	void insert_(int node, int start, int end, int l, int r, pair<T, T> edge) {
+		if (r < start || end < l)
+			return;
+		if (l <= start && end <= r) {
+			Segment[node].push_back(edge);
+			return;
+		}
+		int m = mid(start, end);
+		insert_(leftNode(node), start, m, l, r, edge);
+		insert_(rightNode(node), m + 1, end, l, r, edge);
+	}
+
+	void solve_(int node, int start, int end, RollbackDSU &dsu, vector<T> &ans) {
+		long long t = dsu.time();
+
+		for (auto &edge : Segment[node]) {
+			dsu.unionSet(edge.first, edge.second);
+		}
+
+		if (start == end) {
+			ans[start] = dsu.getComponents();
+		} 
+		else {
+			int m = mid(start, end);
+			solve_(leftNode(node), start, m, dsu, ans);
+			solve_(rightNode(node), m + 1, end, dsu, ans);
+		}
+
+		dsu.rollback(t);
+	}
+
+public:
+	explicit SegmentTreeTime(int total_queries) : sz(total_queries) {
+		Segment.resize(4 * sz);
+	}
+
+	void insert(int l, int r, pair<T, T> edge) {
+		if (l > r) return;
+		insert_(0, 0, sz - 1, l, r, edge);
+	}
+
+	vector<T> solve(RollbackDSU &dsu) {
+		vector<T> ans(sz);
+		solve_(0, 0, sz - 1, dsu, ans);
+		return ans;
+	}
+};
