@@ -1,6 +1,8 @@
 class RollbackDSU {
 	vector<long long> rank;
 	vector<long long> parent;	
+	long long components; 
+	
 	struct Op {
 		long long u;
 		long long p_u;
@@ -10,7 +12,7 @@ class RollbackDSU {
 	stack<Op> history;
 
 public:
-	explicit RollbackDSU(long long n) : rank(n), parent(n) {
+	explicit RollbackDSU(long long n) : rank(n), parent(n), components(n) {
 		for(long long i = 0; i < n; i += 1) {
 			parent[i] = i;
 			rank[i] = 0;
@@ -28,6 +30,8 @@ public:
 		long long px = findSet(x);
 		long long py = findSet(y);
 		if (px == py) return;
+
+		components -= 1;
 
 		if (rank[px] == rank[py]) {
 			history.push({py, parent[py], px, rank[px]});
@@ -54,6 +58,12 @@ public:
 			history.pop();
 			parent[top.u] = top.p_u;
 			rank[top.v] = top.r_v;
+			
+			components += 1;
 		}
+	}
+
+	long long getComponents() {
+		return components;
 	}
 };
